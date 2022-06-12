@@ -1,0 +1,18 @@
+ssh-keygen
+
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin
+kubectl version --short
+
+curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+chmod +x kops
+sudo mv kops /usr/local/bin/kops
+kops version
+
+export KOPS_STATE_STORE="s3://mynewcluster.com"
+export SERVER_SIZE="t2.medium"
+export ZONES="us-east-2a,us-east-2b,us-east-2c"
+kops create cluster mynewcluster.com   --node-count 3   --zones $ZONES   --node-size $SERVER_SIZE   --master-size $SERVER_SIZE   --master-zones $ZONES   --dns private   --dns-zone mynewcluster.com   --cloud aws
+kops update cluster --name mynewcluster.com --yes --admin
+watch -n5 kops validate cluster 
